@@ -1,0 +1,394 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chess Engine Testing Framework</title>
+
+    <!-- Chessboard CSS -->
+    <link rel="stylesheet" href="https://unpkg.com/@chrisoakman/chessboardjs@1.0.0/dist/chessboard-1.0.0.min.css">
+
+    <!-- Custom CSS -->
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: #333;
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        header {
+            text-align: center;
+            color: white;
+            padding: 30px 0;
+        }
+
+        h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+
+        .main-content {
+            display: grid;
+            grid-template-columns: 300px 1fr 400px;
+            gap: 20px;
+            margin-top: 20px;
+        }
+
+        .panel {
+            background: white;
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        .panel h2 {
+            margin-bottom: 15px;
+            color: #667eea;
+            font-size: 1.3em;
+            border-bottom: 2px solid #667eea;
+            padding-bottom: 10px;
+        }
+
+        /* Engines Panel */
+        #engines-list {
+            max-height: 500px;
+            overflow-y: auto;
+        }
+
+        .engine-item {
+            padding: 10px;
+            margin: 5px 0;
+            background: #f5f5f5;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .engine-item:hover {
+            background: #667eea;
+            color: white;
+        }
+
+        .engine-item.selected {
+            background: #764ba2;
+            color: white;
+        }
+
+        /* Chessboard */
+        #board-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        #myBoard {
+            width: 500px;
+            margin: 20px auto;
+        }
+
+        /* Control Panel */
+        .control-group {
+            margin-bottom: 20px;
+        }
+
+        .control-group label {
+            display: block;
+            font-weight: bold;
+            margin-bottom: 5px;
+            color: #555;
+        }
+
+        .control-group input,
+        .control-group select {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 14px;
+        }
+
+        button {
+            width: 100%;
+            padding: 12px;
+            margin: 5px 0;
+            border: none;
+            border-radius: 5px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .btn-primary {
+            background: #667eea;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #5568d3;
+        }
+
+        .btn-success {
+            background: #48bb78;
+            color: white;
+        }
+
+        .btn-success:hover {
+            background: #38a169;
+        }
+
+        .btn-warning {
+            background: #ed8936;
+            color: white;
+        }
+
+        .btn-warning:hover {
+            background: #dd6b20;
+        }
+
+        /* Status Panel */
+        #status-panel {
+            padding: 15px;
+            background: #f0f4f8;
+            border-radius: 5px;
+            margin-bottom: 15px;
+        }
+
+        #status-text {
+            font-weight: bold;
+            color: #2d3748;
+        }
+
+        /* Log Panel */
+        #log-panel {
+            max-height: 300px;
+            overflow-y: auto;
+            background: #1a202c;
+            color: #68d391;
+            padding: 10px;
+            border-radius: 5px;
+            font-family: 'Courier New', monospace;
+            font-size: 12px;
+        }
+
+        .log-entry {
+            margin: 2px 0;
+            padding: 2px 0;
+        }
+
+        .log-info {
+            color: #68d391;
+        }
+
+        .log-warning {
+            color: #f6ad55;
+        }
+
+        .log-error {
+            color: #fc8181;
+        }
+
+        /* Tournament Results */
+        #standings-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 15px;
+        }
+
+        #standings-table th,
+        #standings-table td {
+            padding: 8px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+
+        #standings-table th {
+            background: #667eea;
+            color: white;
+        }
+
+        #standings-table tr:hover {
+            background: #f5f5f5;
+        }
+
+        /* Responsive */
+        @media (max-width: 1200px) {
+            .main-content {
+                grid-template-columns: 1fr;
+            }
+
+            #myBoard {
+                width: 100%;
+                max-width: 500px;
+            }
+        }
+
+        .engine-selection {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 15px;
+        }
+
+        .engine-box {
+            flex: 1;
+            padding: 10px;
+            border: 2px solid #ddd;
+            border-radius: 5px;
+            text-align: center;
+            margin: 0 5px;
+        }
+
+        .engine-box.white {
+            border-color: #667eea;
+        }
+
+        .engine-box.black {
+            border-color: #764ba2;
+        }
+
+        .hidden {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>♟️ Chess Engine Testing Framework</h1>
+            <p>Test und Turniere für Schach-Engines</p>
+        </header>
+
+        <div class="main-content">
+            <!-- Left Panel: Engines -->
+            <div class="panel">
+                <h2>Engines</h2>
+                <button class="btn-success" onclick="discoverEngines()">🔍 Engines Suchen</button>
+                <button class="btn-warning" onclick="validateAllEngines()">✓ Alle Validieren</button>
+                <div id="engines-list"></div>
+            </div>
+
+            <!-- Center Panel: Board -->
+            <div class="panel">
+                <h2>Live Schachbrett</h2>
+                <div id="board-container">
+                    <div class="engine-selection">
+                        <div class="engine-box white">
+                            <div>⚪ Weiß</div>
+                            <div id="white-engine-name">-</div>
+                        </div>
+                        <div class="engine-box black">
+                            <div>⚫ Schwarz</div>
+                            <div id="black-engine-name">-</div>
+                        </div>
+                    </div>
+
+                    <div id="myBoard"></div>
+
+                    <div id="status-panel">
+                        <div id="status-text">Bereit</div>
+                    </div>
+
+                    <div id="move-info">
+                        <strong>Züge:</strong> <span id="move-count">0</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right Panel: Controls -->
+            <div class="panel">
+                <h2>Steuerung</h2>
+
+                <!-- Match Controls -->
+                <div class="control-group">
+                    <h3>Einzelnes Spiel</h3>
+                    <label>Bedenkzeit (ms)</label>
+                    <input type="number" id="match-time" value="60000">
+
+                    <label style="margin-top: 10px;">Inkrement (ms)</label>
+                    <input type="number" id="match-increment" value="0">
+
+                    <button class="btn-primary" onclick="startMatch()" style="margin-top: 10px;">
+                        ▶️ Match Starten
+                    </button>
+                </div>
+
+                <hr style="margin: 20px 0;">
+
+                <!-- Tournament Controls -->
+                <div class="control-group">
+                    <h3>Turnier</h3>
+                    <label>Turnier Name</label>
+                    <input type="text" id="tournament-name" value="Turnier_1">
+
+                    <label style="margin-top: 10px;">Turnier-Typ</label>
+                    <select id="tournament-type">
+                        <option value="roundrobin">Round-Robin</option>
+                        <option value="gauntlet">Gauntlet</option>
+                    </select>
+
+                    <label style="margin-top: 10px;">Runden</label>
+                    <input type="number" id="tournament-rounds" value="1" min="1">
+
+                    <label style="margin-top: 10px;">Bedenkzeit (ms)</label>
+                    <input type="number" id="tournament-time" value="60000">
+
+                    <div style="margin-top: 10px;">
+                        <input type="checkbox" id="use-openings">
+                        <label for="use-openings" style="display: inline;">Eröffnungsbuch nutzen</label>
+                    </div>
+
+                    <button class="btn-primary" onclick="startTournament()" style="margin-top: 10px;">
+                        🏆 Turnier Starten
+                    </button>
+                </div>
+
+                <hr style="margin: 20px 0;">
+
+                <!-- Standings -->
+                <div id="standings-container" class="hidden">
+                    <h3>Tabelle</h3>
+                    <table id="standings-table">
+                        <thead>
+                            <tr>
+                                <th>#</th>
+                                <th>Engine</th>
+                                <th>Punkte</th>
+                            </tr>
+                        </thead>
+                        <tbody id="standings-body"></tbody>
+                    </table>
+                </div>
+
+                <!-- Log -->
+                <h3 style="margin-top: 20px;">Log</h3>
+                <div id="log-panel"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- jQuery -->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
+    <!-- Chess.js -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/chess.js/0.10.3/chess.min.js"></script>
+
+    <!-- Chessboard.js -->
+    <script src="https://unpkg.com/@chrisoakman/chessboardjs@1.0.0/dist/chessboard-1.0.0.min.js"></script>
+
+    <!-- Main App -->
+    <script src="app.js"></script>
+</body>
+</html>
